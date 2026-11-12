@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="theme-color" content="#f3f0e8" />
+<meta name="description" content="An interactive visual walkthrough of LeetCode 53, Maximum Subarray, using Kadane's algorithm." />
+<title>Maximum Subarray — Kadane's Algorithm Lab</title>
+<style>
+  :root {
+    --paper: #f3f0e8;
+    --surface: #fbfaf6;
+    --ink: #172a35;
+    --muted: #66747a;
+    --line: #d8d8cf;
+    --navy: #183746;
+    --teal: #287b72;
+    --teal-soft: #dcece6;
+    --orange: #c45b37;
+    --orange-soft: #f4e3d9;
+    --gold: #e4b85d;
+    --shadow: 0 12px 34px rgba(23, 42, 53, .07);
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--paper); color: var(--ink);
+    font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    line-height: 1.5;
+  }
+  button, input { font: inherit; }
+  button { cursor: pointer; }
+  .shell { max-width: 1180px; margin: 0 auto; padding: 26px 34px 56px; }
+  header {
+    display:flex; align-items:center; justify-content:space-between;
+    border-bottom:1px solid var(--line); padding-bottom:18px; gap:16px;
+  }
+  .brand { display:flex; align-items:center; gap:12px; font-size:13px; font-weight:750; letter-spacing:.12em; text-transform:uppercase; }
+  .brand-mark { width:34px; height:34px; border:1.5px solid var(--navy); display:grid; place-items:center; font-family:Georgia,serif; font-size:20px; }
+  .header-right { color:var(--muted); font-size:12px; letter-spacing:.08em; text-transform:uppercase; }
+  .hero { display:grid; grid-template-columns:1.2fr .8fr; gap:40px; align-items:end; padding:56px 0 34px; }
+  .eyebrow { color:var(--orange); text-transform:uppercase; letter-spacing:.16em; font-size:11px; font-weight:800; margin:0 0 14px; }
+  h1 { font-family:Georgia, "Times New Roman", serif; font-size:clamp(42px,6vw,72px); line-height:.98; letter-spacing:-.045em; font-weight:500; margin:0; max-width:720px; }
+  h1 em { color:var(--teal); font-weight:400; }
+  .intro { max-width:420px; color:var(--muted); font-size:15px; margin:0 0 4px; }
+  .intro strong { color:var(--ink); font-weight:650; }
+  .workspace { display:grid; grid-template-columns:310px minmax(0,1fr); gap:18px; align-items:start; }
+  .panel { background:var(--surface); border:1px solid var(--line); box-shadow:var(--shadow); }
+  .controls { padding:23px; }
+  .section-kicker { font-size:10px; text-transform:uppercase; letter-spacing:.15em; color:var(--muted); font-weight:800; margin:0 0 16px; }
+  label { display:block; font-size:12px; font-weight:700; margin:0 0 7px; }
+  .size-row { display:flex; gap:8px; }
+  input[type=number], input[type=text] {
+    min-width:0; width:100%; border:1px solid #c9cec8; background:#fffefa; color:var(--ink);
+    padding:11px 12px; border-radius:3px; outline:none; transition:border-color .15s;
+  }
+  input:focus { border-color:var(--teal); box-shadow:0 0 0 3px rgba(40,123,114,.12); }
+  .small-btn, .primary-btn, .secondary-btn {
+    border:0; border-radius:3px; padding:11px 14px; font-weight:700; font-size:12px;
+    transition:background .15s, transform .15s;
+  }
+  .small-btn { background:var(--navy); color:white; white-space:nowrap; }
+  .small-btn:hover, .primary-btn:hover { background:#245568; }
+  .array-inputs { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:7px; margin:12px 0 8px; }
+  .array-inputs input { text-align:center; padding:10px 3px; font-variant-numeric:tabular-nums; }
+  .hint { color:var(--muted); font-size:11px; margin:7px 0 0; }
+  .presets { display:flex; flex-wrap:wrap; gap:6px; margin:15px 0 22px; }
+  .preset { border:1px solid var(--line); background:transparent; color:var(--muted); padding:6px 9px; border-radius:2px; font-size:11px; }
+  .preset:hover { border-color:var(--teal); color:var(--teal); }
+  .primary-btn { width:100%; background:var(--teal); color:white; padding:13px 16px; }
+  .secondary-btn { background:#e9e9e1; color:var(--ink); }
+  .actions { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:9px; }
+  .error { color:#a33f27; font-size:11px; min-height:17px; margin:9px 0 0; }
+  .main { min-width:0; }
+  .visual-panel { padding:23px 24px 21px; }
+  .visual-head { display:flex; align-items:flex-start; justify-content:space-between; gap:14px; }
+  .visual-head h2, .steps-head h2 { font:500 25px/1.1 Georgia,serif; margin:0; }
+  .step-counter { font-size:11px; color:var(--muted); border:1px solid var(--line); padding:6px 9px; white-space:nowrap; }
+  .legend { display:flex; flex-wrap:wrap; gap:14px; margin:20px 0 13px; font-size:10px; color:var(--muted); }
+  .legend span { display:flex; align-items:center; gap:6px; }
+  .swatch { width:9px; height:9px; display:inline-block; border-radius:1px; }
+  .array-view { display:flex; gap:7px; align-items:stretch; min-height:100px; overflow-x:auto; padding:3px 2px 10px; }
+  .cell { flex:1 0 43px; min-width:43px; max-width:78px; text-align:center; }
+  .cell-index { font-size:10px; color:#899397; margin-bottom:6px; }
+  .cell-value {
+    height:55px; border:1px solid #d3d7d0; background:#f1f0e9; display:grid; place-items:center;
+    font:600 19px Georgia,serif; position:relative; transition:background .2s,border-color .2s,color .2s;
+  }
+  .cell.current .cell-value { background:var(--teal-soft); border-color:var(--teal); color:#155c53; }
+  .cell.best .cell-value { background:var(--orange-soft); border-color:var(--orange); color:#963f24; }
+  .cell.current.best .cell-value { background:#f0dfb9; border-color:#a76a2b; color:#713f19; }
+  .cell.current .cell-value:after, .cell.best .cell-value:after {
+    position:absolute; top:-17px; font:800 8px ui-sans-serif,sans-serif; letter-spacing:.08em;
+  }
+  .cell.current .cell-value:after { content:"CURRENT"; color:var(--teal); }
+  .cell.best .cell-value:after { content:"BEST"; color:var(--orange); top:auto; bottom:-17px; }
+  .array-caption { color:var(--muted); font-size:11px; margin:7px 0 0; }
+  .metrics { display:grid; grid-template-columns:repeat(3,1fr); border-top:1px solid var(--line); margin-top:20px; }
+  .metric { padding:15px 12px 1px 0; }
+  .metric + .metric { border-left:1px solid var(--line); padding-left:16px; }
+  .metric-label { display:block; color:var(--muted); font-size:10px; text-transform:uppercase; letter-spacing:.1em; margin-bottom:4px; }
+  .metric-value { font:500 25px Georgia,serif; font-variant-numeric:tabular-nums; }
+  .explain { background:#edf0e9; border:1px solid #d9ded4; padding:15px 17px; margin-top:14px; display:flex; gap:12px; align-items:flex-start; }
+  .explain-tag { color:var(--teal); font-size:10px; font-weight:800; letter-spacing:.12em; text-transform:uppercase; min-width:62px; padding-top:2px; }
+  .explain p { margin:0; font-size:13px; color:#34474d; }
+  .step-nav { display:flex; align-items:center; gap:8px; margin-top:16px; }
+  .step-nav button { border:1px solid var(--line); background:transparent; color:var(--ink); padding:9px 14px; border-radius:2px; font-size:12px; font-weight:700; }
+  .step-nav button:disabled { opacity:.35; cursor:not-allowed; }
+  .step-nav .next { background:var(--navy); border-color:var(--navy); color:white; margin-left:auto; }
+  .steps-panel { padding:22px 24px; margin-top:16px; }
+  .steps-head { display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:14px; }
+  .steps-head p { color:var(--muted); font-size:11px; margin:0; }
+  .table-wrap { overflow-x:auto; }
+  table { width:100%; border-collapse:collapse; font-size:11px; min-width:510px; }
+  th { text-align:left; color:var(--muted); font-size:9px; text-transform:uppercase; letter-spacing:.1em; font-weight:800; padding:10px 8px; border-bottom:1px solid var(--line); }
+  td { padding:11px 8px; border-bottom:1px solid #e9e8e0; font-variant-numeric:tabular-nums; }
+  tr.active-row td { background:#e7f0eb; color:#175e55; font-weight:700; }
+  tr.final-row td { color:#a24a2c; }
+  .result { display:flex; align-items:center; justify-content:space-between; gap:20px; padding:21px 24px; margin-top:16px; background:var(--navy); color:#f8f5eb; }
+  .result-label { color:#b8c8c8; font-size:10px; letter-spacing:.13em; text-transform:uppercase; margin-bottom:4px; }
+  .result h3 { font:500 25px Georgia,serif; margin:0; }
+  .result-number { font:500 42px Georgia,serif; color:#e9bd69; font-variant-numeric:tabular-nums; }
+  .result-sub { color:#d0dcda; font-size:11px; margin-top:4px; }
+  .method { display:grid; grid-template-columns:1fr 1fr; gap:24px; padding:32px 0 0; }
+  .method h3 { font:500 22px Georgia,serif; margin:0 0 9px; }
+  .method p { color:var(--muted); font-size:12px; margin:0; max-width:470px; }
+  .code-note { background:#e8e6dc; padding:14px 16px; font:12px/1.8 ui-monospace,SFMono-Regular,Menlo,monospace; color:#2a4149; }
+  footer { border-top:1px solid var(--line); margin-top:36px; padding-top:14px; display:flex; justify-content:space-between; color:var(--muted); font-size:10px; letter-spacing:.06em; text-transform:uppercase; }
+  @media (max-width:850px) {
+    .hero { grid-template-columns:1fr; gap:16px; padding-top:42px; }
+    .intro { max-width:620px; }
+    .workspace { grid-template-columns:1fr; }
+    .controls { order:0; }
+    .main { order:1; }
+    .array-inputs { grid-template-columns:repeat(6,minmax(0,1fr)); }
+  }
+  @media (max-width:560px) {
+    .shell { padding:17px 15px 36px; }
+    .header-right { display:none; }
+    .hero { padding:36px 0 25px; }
+    h1 { font-size:48px; }
+    .controls,.visual-panel,.steps-panel { padding:18px; }
+    .array-inputs { grid-template-columns:repeat(4,minmax(0,1fr)); }
+    .metrics { grid-template-columns:1fr 1fr 1fr; }
+    .metric-value { font-size:21px; }
+    .explain { display:block; }
+    .explain-tag { display:block; margin-bottom:5px; }
+    .result { padding:18px; }
+    .result-number { font-size:34px; }
+    .method { grid-template-columns:1fr; gap:15px; }
+    footer { gap:10px; flex-wrap:wrap; }
+  }
+  @media print {
+    body { background:white; }
+    .shell { max-width:none; padding:0; }
+    header,.controls,.step-nav,.presets { display:none !important; }
+    .hero { padding:15px 0; }
+    .workspace { display:block; }
+    .panel { box-shadow:none; break-inside:avoid; }
+    .steps-panel { break-inside:avoid; }
+  }
+</style>
+</head>
+<body>
+<div class="shell">
+  <header>
+    <div class="brand"><span class="brand-mark">Σ</span><span>Algorithm Lab</span></div>
+    <div class="header-right">Data Structures &amp; Algorithms / 01</div>
+  </header>
+
+  <section class="hero">
+    <div>
+      <p class="eyebrow">LeetCode 53 · Medium · Dynamic Programming</p>
+      <h1>Maximum<br><em>Subarray.</em></h1>
+    </div>
+    <p class="intro">A step-by-step visual walkthrough of <strong>Kadane’s Algorithm</strong>. Enter an array, move through each element, and watch how the best contiguous sum is discovered.</p>
+  </section>
+
+  <section class="workspace">
+    <aside class="panel controls">
+      <p class="section-kicker">01 / Build your input</p>
+      <label for="arraySize">Array size</label>
+      <div class="size-row">
+        <input id="arraySize" type="number" min="1" max="20" value="9" />
+        <button class="small-btn" id="makeInputs" type="button">Create</button>
+      </div>
+      <p class="hint">Choose between 1 and 20 elements.</p>
+      <div id="arrayInputs" class="array-inputs" aria-label="Array elements"></div>
+      <p class="hint">Enter integers. Negative values are allowed.</p>
+      <div class="presets">
+        <button class="preset" data-values="-2,1,-3,4,-1,2,1,-5,4">Classic example</button>
+        <button class="preset" data-values="-8,-3,-6,-2,-5,-4">All negative</button>
+        <button class="preset" data-values="5,4,-1,7,8">All positive</button>
+      </div>
+      <button class="primary-btn" id="start" type="button">Run algorithm</button>
+      <div class="actions">
+        <button class="secondary-btn" id="reset" type="button">Reset steps</button>
+        <button class="secondary-btn" id="print" type="button">Print results</button>
+      </div>
+      <p class="error" id="error" role="alert" aria-live="polite"></p>
+    </aside>
+
+    <main class="main">
+      <section class="panel visual-panel">
+        <div class="visual-head">
+          <div>
+            <p class="section-kicker">02 / Live walkthrough</p>
+            <h2>Watch the array</h2>
+          </div>
+          <div class="step-counter" id="stepCounter">Ready · 0 / 0</div>
+        </div>
+        <div class="legend">
+          <span><i class="swatch" style="background:#dcece6;border:1px solid #287b72"></i> Current subarray</span>
+          <span><i class="swatch" style="background:#f4e3d9;border:1px solid #c45b37"></i> Best subarray</span>
+        </div>
+        <div id="arrayView" class="array-view" aria-label="Visual representation of array"></div>
+        <p class="array-caption" id="arrayCaption">Create an array and run the algorithm to begin.</p>
+        <div class="metrics">
+          <div class="metric"><span class="metric-label">Current sum</span><span class="metric-value" id="currentSum">—</span></div>
+          <div class="metric"><span class="metric-label">Maximum sum</span><span class="metric-value" id="maxSum">—</span></div>
+          <div class="metric"><span class="metric-label">Current index</span><span class="metric-value" id="currentIndex">—</span></div>
+        </div>
+        <div class="explain">
+          <span class="explain-tag">What’s happening</span>
+          <p id="explanation" aria-live="polite">The algorithm scans from left to right. At each position, it decides whether to extend the previous subarray or start a new one.</p>
+        </div>
+        <div class="step-nav">
+          <button id="previous" type="button" disabled>Previous</button>
+          <button id="next" class="next" type="button" disabled>Next step</button>
+        </div>
+      </section>
+
+      <section class="panel steps-panel">
+        <div class="steps-head">
+          <div><p class="section-kicker">03 / Iteration log</p><h2>Every decision, recorded</h2></div>
+          <p>0-based indexing</p>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Index</th><th>Value</th><th>Decision</th><th>Current sum</th><th>Maximum sum</th></tr></thead>
+            <tbody id="stepRows"><tr><td colspan="5" style="color:#66747a;padding:20px 8px">Your iteration history will appear here.</td></tr></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="result" aria-live="polite">
+        <div>
+          <div class="result-label">Final answer · Maximum subarray sum</div>
+          <h3 id="resultTitle">Ready when you are</h3>
+          <div class="result-sub" id="resultSub">Run the algorithm to reveal the result.</div>
+        </div>
+        <div class="result-number" id="resultNumber">—</div>
+      </section>
+    </main>
+  </section>
+
+  <section class="method">
+    <div>
+      <p class="eyebrow">The idea behind the solution</p>
+      <h3>Kadane’s Algorithm</h3>
+      <p>At every index, compare the value on its own with the value added to the previous running sum. Keep whichever is larger. Then update the best sum seen so far. This also handles arrays containing only negative numbers.</p>
+    </div>
+    <div class="code-note">
+      current = max(nums[i], current + nums[i])<br>
+      best = max(best, current)<br><br>
+      Time complexity: O(n)<br>
+      Space complexity: O(1)
+    </div>
+  </section>
+
+  <footer><span>LeetCode 53 / Maximum Subarray</span><span>Interactive algorithm visualizer</span></footer>
+</div>
+<script>
+(() => {
+  const $ = id => document.getElementById(id);
+  let values = [];
+  let steps = [];
+  let step = -1;
+
+  function createInputs(initial) {
+    const size = initial ? initial.length : Number($('arraySize').value);
+    if (!Number.isInteger(size) || size < 1 || size > 20) {
+      $('error').textContent = 'Please choose an array size from 1 to 20.';
+      return;
+    }
+    $('error').textContent = '';
+    $('arraySize').value = size;
+    $('arrayInputs').innerHTML = '';
+    for (let i = 0; i < size; i++) {
+      const input = document.createElement('input');
+      input.type = 'number'; input.step = '1'; input.inputMode = 'numeric';
+      input.id = `value-${i}`; input.setAttribute('aria-label', `Array element ${i}`);
+      input.placeholder = `a[${i}]`;
+      input.value = initial ? initial[i] : (values[i] ?? 0);
+      $('arrayInputs').appendChild(input);
+    }
+    clearDisplay();
+  }
+
+  function clearDisplay() {
+    $('arrayView').innerHTML = '';
+    $('arrayCaption').textContent = 'Create an array and run the algorithm to begin.';
+    $('currentSum').textContent = '—'; $('maxSum').textContent = '—'; $('currentIndex').textContent = '—';
+    $('stepCounter').textContent = 'Ready · 0 / 0';
+    $('explanation').textContent = 'The algorithm scans from left to right. At each position, it decides whether to extend the previous subarray or start a new one.';
+    $('stepRows').innerHTML = '<tr><td colspan="5" style="color:#66747a;padding:20px 8px">Your iteration history will appear here.</td></tr>';
+    $('resultTitle').textContent = 'Ready when you are'; $('resultSub').textContent = 'Run the algorithm to reveal the result.';
+    $('resultNumber').textContent = '—';
+    $('previous').disabled = true; $('next').disabled = true;
+  }
+
+  function calculate(arr) {
+    const history = [];
+    let current = arr[0], best = arr[0], start = 0, bestStart = 0, bestEnd = 0;
+    history.push({
+      index:0, value:arr[0], current, best, start, bestStart, bestEnd,
+      decision:'Start here',
+      explanation:`Initialize both current sum and maximum sum to ${arr[0]}. The first element must be included because a subarray cannot be empty.`
+    });
+    for (let i = 1; i < arr.length; i++) {
+      const extended = current + arr[i];
+      const restarted = arr[i];
+      const restart = restarted > extended;
+      if (restart) { current = restarted; start = i; }
+      else current = extended;
+      const newBest = current > best;
+      if (newBest) { best = current; bestStart = start; bestEnd = i; }
+      let explanation = restart
+        ? `${arr[i]} is greater than ${extended} (the sum if we extended). Drop the previous subarray and start fresh at index ${i}.`
+        : `Extend the current subarray: ${current - arr[i]} + (${arr[i]}) = ${current}. This is at least as good as starting fresh.`;
+      explanation += newBest
+        ? ` New maximum found: ${best}, from index ${bestStart} to ${bestEnd}.`
+        : ` The best sum remains ${best}.`;
+      history.push({
+        index:i, value:arr[i], current, best, start, bestStart, bestEnd,
+        decision:restart ? 'Start new' : 'Extend',
+        explanation
+      });
+    }
+    return history;
+  }
+
+  function render() {
+    if (step < 0 || !steps.length) return;
+    const s = steps[step];
+    $('stepCounter').textContent = `Step ${step + 1} / ${steps.length}`;
+    $('currentSum').textContent = s.current;
+    $('maxSum').textContent = s.best;
+    $('currentIndex').textContent = s.index;
+    $('explanation').textContent = s.explanation;
+    $('arrayCaption').textContent = `Processing index ${s.index}. Current range: ${s.start}–${s.index} · Best range so far: ${s.bestStart}–${s.bestEnd}`;
+    $('arrayView').innerHTML = '';
+    values.forEach((v, i) => {
+      const cell = document.createElement('div');
+      cell.className = 'cell' +
+        (i >= s.start && i <= s.index ? ' current' : '') +
+        (i >= s.bestStart && i <= s.bestEnd ? ' best' : '');
+      cell.innerHTML = `<div class="cell-index">${i}</div><div class="cell-value">${v}</div>`;
+      $('arrayView').appendChild(cell);
+    });
+    const rows = steps.slice(0, step + 1).map((item, i) =>
+      `<tr class="${i === step ? 'active-row' : ''} ${i === steps.length - 1 && step === steps.length - 1 ? 'final-row' : ''}">
+        <td>${item.index}</td><td>${item.value}</td><td>${item.decision}</td><td>${item.current}</td><td>${item.best}</td>
+      </tr>`).join('');
+    $('stepRows').innerHTML = rows;
+    $('previous').disabled = step === 0;
+    $('next').disabled = step === steps.length - 1;
+    if (step === steps.length - 1) {
+      const final = steps[steps.length - 1];
+      $('resultTitle').textContent = `Subarray: [${values.slice(final.bestStart, final.bestEnd + 1).join(', ')}]`;
+      $('resultSub').textContent = `Indices ${final.bestStart} through ${final.bestEnd} · ${final.bestEnd - final.bestStart + 1} element(s)`;
+      $('resultNumber').textContent = final.best;
+    } else {
+      $('resultTitle').textContent = 'Algorithm in progress';
+      $('resultSub').textContent = 'The final answer appears after the last step.';
+      $('resultNumber').textContent = '…';
+    }
+  }
+
+  function run() {
+    const inputs = [...$('arrayInputs').querySelectorAll('input')];
+    if (!inputs.length) { $('error').textContent = 'Create the array inputs first.'; return; }
+    const parsed = inputs.map(input => input.value.trim() === '' ? NaN : Number(input.value));
+    if (parsed.some(v => !Number.isSafeInteger(v))) {
+      $('error').textContent = 'Enter a whole number in every array position.';
+      return;
+    }
+    values = parsed;
+    steps = calculate(values);
+    step = 0;
+    $('error').textContent = '';
+    render();
+  }
+
+  $('makeInputs').addEventListener('click', () => createInputs());
+  $('start').addEventListener('click', run);
+  $('previous').addEventListener('click', () => { if (step > 0) { step--; render(); } });
+  $('next').addEventListener('click', () => { if (step < steps.length - 1) { step++; render(); } });
+  $('reset').addEventListener('click', () => { step = -1; steps = []; clearDisplay(); });
+  $('print').addEventListener('click', () => window.print());
+  document.querySelectorAll('.preset').forEach(button => {
+    button.addEventListener('click', () => {
+      const preset = button.dataset.values.split(',').map(Number);
+      createInputs(preset);
+    });
+  });
+  createInputs([-2,1,-3,4,-1,2,1,-5,4]);
+})();
+</script>
+</body>
+</html>
